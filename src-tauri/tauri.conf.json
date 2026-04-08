@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "sms",
+  "productName": "SMS App",
   "version": "0.1.0",
-  "identifier": "com.kz.sms",
+  "identifier": "com.sms.app",
   "build": {
     "beforeDevCommand": "bun run dev",
     "devUrl": "http://localhost:1420",
@@ -12,9 +12,16 @@
   "app": {
     "windows": [
       {
-        "title": "sms",
+        "title": "SMS App",
         "width": 800,
-        "height": 600
+        "height": 600,
+        "minWidth": 800,
+        "minHeight": 600,
+        "center": true,
+        "resizable": true,
+        "fullscreen": false,
+        "decorations": true,
+        "transparent": false
       }
     ],
     "security": {
