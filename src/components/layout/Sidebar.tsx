@@ -1,11 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Settings, MessageSquare, X, User } from "lucide-react";
+import { LayoutDashboard, Users, Settings, MessageSquare, X } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
+import { Avatar } from "@/components/users/Avatar";
 import { useSidebar } from "./AppLayout";
 import { useApp } from "@/lib/context/AppContext";
 import { useAuth } from "@/lib/hooks/useAuth";
@@ -134,7 +135,12 @@ export function Sidebar() {
                       ${isCollapsed ? "justify-center" : ""}
                     `}
                   >
-                    <User className="size-4 shrink-0" />
+                    <Avatar
+                      userId={user.id}
+                      userName={user.name}
+                      imagePath={user.image_path}
+                      size="sm"
+                    />
                     <span className={`transition-all duration-300 ${isCollapsed ? "hidden md:hidden" : ""} truncate`}>
                       {user.name}
                     </span>

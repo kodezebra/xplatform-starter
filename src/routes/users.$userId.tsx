@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useUser, useUsers } from "@/lib/hooks/useUsers";
 import { UserModal } from "@/components/users/UserModal";
+import { Avatar } from "@/components/users/Avatar";
 import { useToast } from "@/lib/hooks/useToast";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useRoleGuard } from "@/lib/hooks/useRoleGuard";
@@ -42,7 +43,7 @@ export default function UserDetail() {
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
   const { hasAccess: isAdmin } = useRoleGuard("admin");
-  const { data: user, isLoading, error } = useUser(userId || "");
+  const { data: user, isLoading, error, refetch } = useUser(userId || "");
   const { updateUser, deleteUser, isUpdating } = useUsers();
 
   const [editOpen, setEditOpen] = useState(false);
@@ -196,11 +197,14 @@ export default function UserDetail() {
       </div>
 
       <div className="flex items-start gap-4">
-        <div className="size-14 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-          <span className="text-lg font-semibold text-primary">
-            {user.name.split(" ").map((n) => n[0]).join("")}
-          </span>
-        </div>
+        <Avatar
+          userId={user.id}
+          userName={user.name}
+          imagePath={user.image_path}
+          size="lg"
+          editable={isOwnProfile}
+          onUpdate={() => refetch()}
+        />
         <div>
           <h1 className="text-xl font-semibold">{user.name}</h1>
           <div className="flex items-center gap-3 mt-1">

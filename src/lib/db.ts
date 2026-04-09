@@ -21,6 +21,7 @@ export interface User {
   first_login: boolean;
   created_at: string;
   updated_at: string;
+  image_path?: string;
 }
 
 export interface NewUser {
@@ -282,6 +283,20 @@ export const queries = {
         await database.execute("DELETE FROM users WHERE id = $1", [id]);
       } catch (error) {
         console.error("delete error:", error);
+        throw error;
+      }
+    },
+
+    updateImagePath: async (id: string, imagePath: string | null): Promise<void> => {
+      try {
+        const database = await getDb();
+        const now = new Date().toISOString();
+        await database.execute(
+          "UPDATE users SET image_path = $1, updated_at = $2 WHERE id = $3",
+          [imagePath, now, id]
+        );
+      } catch (error) {
+        console.error("updateImagePath error:", error);
         throw error;
       }
     },

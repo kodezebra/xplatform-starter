@@ -1,5 +1,9 @@
-import { Sun, Moon, Monitor, Check } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Sun, Moon, Monitor, Check, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/context/AppContext";
+import { cleanupOrphanedImages, getLastCleanupDate } from "@/lib/images";
+import { useToast } from "@/lib/hooks/useToast";
 
 export function meta() {
   return [
@@ -35,7 +39,41 @@ function ThemeOption({ label, icon: Icon, selected, onClick }: {
 }
 
 export default function Settings() {
+  const toast = useToast();
   const { theme, setTheme, appName, setAppName } = useApp();
+  const [lastCleanup, setLastCleanup] = useState<string | null>(null);
+  const [isCleaningUp, setIsCleaningUp] = useState(false);
+
+  useEffect(() => {
+    getLastCleanupDate().then(setLastCleanup);
+  }, []);
+
+  const handleCleanup = async () => {
+    setIsCleaningUp(true);
+    try {
+      const result = await cleanupOrphanedImages();
+      if (result.errors.length > 0) {
+        toast.error(`Cleanup completed with ${result.errors.length} errors`);
+      } else {
+        toast.success(`Cleaned up ${result.deleted} orphaned image${result.deleted !== 1 ? "s" : ""}`);
+      }
+      setLastCleanup(new Date().toISOString());
+    } catch (err) {
+      toast.error("Cleanup failed");
+    } finally {
+      setIsCleaningUp(false);
+    }
+  };
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
 
   return (
     <div className="space-y-4">
@@ -101,6 +139,34 @@ export default function Settings() {
                 <option value="Spanish">Spanish</option>
                 <option value="French">French</option>
               </select>
+            </div>
+          </div>
+        </div>
+
+        <div className="border rounded-lg">
+          <div className="px-4 py-2.5 border-b">
+            <h2 className="text-sm font-semibold">Data Management</h2>
+            <p className="text-xs text-muted-foreground">Manage app data and storage</p>
+          </div>
+          <div className="p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm">Clean up orphaned images</p>
+                <p className="text-xs text-muted-foreground">
+                  {lastCleanup
+                    ? `Last cleaned up: ${formatDate(lastCleanup)}`
+                    : "Never cleaned up"}
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCleanup}
+                disabled={isCleaningUp}
+              >
+                <Trash2 className="size-3.5 mr-1" />
+                {isCleaningUp ? "Cleaning..." : "Clean Up"}
+              </Button>
             </div>
           </div>
         </div>

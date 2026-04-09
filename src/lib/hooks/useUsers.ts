@@ -58,9 +58,16 @@ export function useUsers() {
 }
 
 export function useUser(id: string) {
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
     queryKey: ["user", id],
     queryFn: () => queries.users.findById(id),
     enabled: !!id,
   });
+
+  return {
+    ...query,
+    refetch: () => queryClient.invalidateQueries({ queryKey: ["user", id] }),
+  };
 }
