@@ -20,7 +20,7 @@ export function useUsers() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<NewUser> }) =>
+    mutationFn: ({ id, data }: { id: string; data: Partial<Omit<NewUser, "password">> }) =>
       queries.users.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });

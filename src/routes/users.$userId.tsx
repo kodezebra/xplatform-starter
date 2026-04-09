@@ -43,7 +43,9 @@ export default function UserDetail() {
 
   const handleSave = (data: NewUser) => {
     if (userId) {
-      updateUser({ id: userId, data });
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password, ...updateData } = data;
+      updateUser({ id: userId, data: updateData });
     }
     setEditOpen(false);
     toast.success("User updated successfully");

@@ -8,10 +8,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "./AppLayout";
 import { useApp } from "@/lib/context/AppContext";
+import { useRoleGuard } from "@/lib/hooks/useRoleGuard";
 
 const navItems = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard },
-  { path: "/users", label: "Users", icon: Users },
+  { path: "/users", label: "Users", icon: Users, requiredRole: "admin" as const },
   { path: "/settings", label: "Settings", icon: Settings },
 ];
 
@@ -19,6 +20,7 @@ export function Sidebar() {
   const { appName } = useApp();
   const location = useLocation();
   const { isCollapsed, setCollapsed } = useSidebar();
+  const { hasAccess: isAdmin } = useRoleGuard("admin");
 
   const isActive = (path: string) => {
     if (path === "/") {
@@ -70,7 +72,12 @@ export function Sidebar() {
 
         <nav className="flex-1 p-2 md:p-4 overflow-y-auto">
           <ul className="space-y-1">
-            {navItems.map((item) => {
+            {navItems
+              .filter((item) => {
+                if (item.requiredRole === "admin" && !isAdmin) return false;
+                return true;
+              })
+              .map((item) => {
               const Icon = item.icon;
               const active = isActive(item.path);
 

@@ -25,6 +25,7 @@ export function UserModal({
 }: UserModalProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [role, setRole] = useState<"admin" | "editor" | "viewer">("viewer");
   const [status, setStatus] = useState<"active" | "inactive">("active");
 
@@ -37,6 +38,7 @@ export function UserModal({
     } else {
       setName("");
       setEmail("");
+      setPassword("");
       setRole("viewer");
       setStatus("active");
     }
@@ -44,8 +46,11 @@ export function UserModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted:", { name, email, role, status });
-    onSave({ name, email, role, status });
+    if (isEditing) {
+      onSave({ name, email, password: "", role, status });
+    } else {
+      onSave({ name, email, password, role, status });
+    }
   };
 
   const isEditing = !!user;
@@ -89,6 +94,28 @@ export function UserModal({
             />
           </div>
 
+          {!isEditing && (
+            <div className="space-y-2">
+              <label htmlFor="password" className="text-sm font-medium">
+                Initial Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+                className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
+                placeholder="At least 6 characters"
+                autoComplete="new-password"
+              />
+              <p className="text-xs text-muted-foreground">
+                The user will be required to change this password on first login.
+              </p>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label htmlFor="role" className="text-sm font-medium">
@@ -131,7 +158,7 @@ export function UserModal({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSaving || !name || !email}>
+            <Button type="submit" disabled={isSaving || !name || !email || (!isEditing && !password)}>
               {isSaving ? "Saving..." : isEditing ? "Save changes" : "Add user"}
             </Button>
           </div>
