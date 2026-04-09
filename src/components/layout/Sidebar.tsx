@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Settings, MessageSquare, X } from "lucide-react";
+import { LayoutDashboard, Users, Settings, MessageSquare, X, User } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -8,6 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "./AppLayout";
 import { useApp } from "@/lib/context/AppContext";
+import { useAuth } from "@/lib/hooks/useAuth";
 import { useRoleGuard } from "@/lib/hooks/useRoleGuard";
 import { useVersion } from "@/lib/hooks/useVersion";
 
@@ -19,6 +20,7 @@ const navItems = [
 
 export function Sidebar() {
   const { appName } = useApp();
+  const { user } = useAuth();
   const location = useLocation();
   const { isCollapsed, setCollapsed } = useSidebar();
   const { hasAccess: isAdmin } = useRoleGuard("admin");
@@ -115,6 +117,37 @@ export function Sidebar() {
               );
             })}
           </ul>
+
+          {user && (
+            <div className="mt-4 pt-4 border-t">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
+                    to={`/users/${user.id}`}
+                    onClick={handleNavClick}
+                    className={`
+                      flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
+                      ${location.pathname === `/users/${user.id}`
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                        : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+                      }
+                      ${isCollapsed ? "justify-center" : ""}
+                    `}
+                  >
+                    <User className="size-4 shrink-0" />
+                    <span className={`transition-all duration-300 ${isCollapsed ? "hidden md:hidden" : ""} truncate`}>
+                      {user.name}
+                    </span>
+                  </Link>
+                </TooltipTrigger>
+                {isCollapsed && (
+                  <TooltipContent side="right">
+                    Profile
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </div>
+          )}
         </nav>
 
         <div className="p-2 md:p-4 border-t">

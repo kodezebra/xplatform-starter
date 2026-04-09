@@ -285,6 +285,48 @@ export const queries = {
         throw error;
       }
     },
+
+    resetPassword: async (userId: string): Promise<string> => {
+      try {
+        const tempPassword = crypto.randomUUID().slice(0, 8);
+        const { hash, salt } = await hashPassword(tempPassword);
+        const now = new Date().toISOString();
+        const database = await getDb();
+        await database.execute(
+          "UPDATE users SET password_hash = $1, salt = $2, first_login = 1, updated_at = $3 WHERE id = $4",
+          [hash, salt, now, userId]
+        );
+        return tempPassword;
+      } catch (error) {
+        console.error("resetPassword error:", error);
+        throw error;
+      }
+    },
+
+    changePassword: async (userId: string, currentPassword: string, newPassword: string): Promise<{ error?: string }> => {
+      try {
+        const database = await getDb();
+        const results = await database.select<User[]>("SELECT * FROM users WHERE id = $1", [userId]);
+        const user = results[0];
+        if (!user) {
+          return { error: "User not found" };
+        }
+        const valid = await verifyPassword(currentPassword, user.password_hash, user.salt);
+        if (!valid) {
+          return { error: "Current password is incorrect" };
+        }
+        const { hash, salt } = await hashPassword(newPassword);
+        const now = new Date().toISOString();
+        await database.execute(
+          "UPDATE users SET password_hash = $1, salt = $2, first_login = 0, updated_at = $3 WHERE id = $4",
+          [hash, salt, now, userId]
+        );
+        return {};
+      } catch (error) {
+        console.error("changePassword error:", error);
+        throw error;
+      }
+    },
   },
   settings: {
     findAll: async (): Promise<Setting[]> => {

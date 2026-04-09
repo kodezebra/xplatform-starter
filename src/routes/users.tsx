@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Plus, Settings2, Trash } from "lucide-react";
+import { Plus, Settings2, Trash, Key } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,6 +16,7 @@ import {
 import { useUsers } from "@/lib/hooks/useUsers";
 import { UserModal } from "@/components/users/UserModal";
 import { useToast } from "@/lib/hooks/useToast";
+import { queries } from "@/lib/db";
 import type { NewUser } from "@/lib/db";
 
 export function meta() {
@@ -38,6 +40,9 @@ export default function Users() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
+  const [resetUserId, setResetUserId] = useState<string | null>(null);
+  const [tempPassword, setTempPassword] = useState<string | null>(null);
+  const [isResetting, setIsResetting] = useState(false);
 
   const handleSave = (data: NewUser) => {
     createUser(data);
@@ -53,7 +58,34 @@ export default function Users() {
     }
   };
 
+  const handleResetPassword = async () => {
+    if (!resetUserId) return;
+    setIsResetting(true);
+    try {
+      const temp = await queries.users.resetPassword(resetUserId);
+      setTempPassword(temp);
+      toast.success("Password reset");
+    } catch (err) {
+      toast.error("Failed to reset password");
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
+  const handleResetClose = () => {
+    setResetUserId(null);
+    setTempPassword(null);
+  };
+
+  const copyPassword = () => {
+    if (tempPassword) {
+      navigator.clipboard.writeText(tempPassword);
+      toast.success("Copied to clipboard");
+    }
+  };
+
   const userToDelete = users.find((u) => u.id === deleteUserId);
+  const userToReset = users.find((u) => u.id === resetUserId);
 
   if (isLoading) {
     return (
@@ -144,6 +176,14 @@ export default function Users() {
                       <Button
                         variant="ghost"
                         size="icon-sm"
+                        onClick={() => setResetUserId(user.id)}
+                        title="Reset password"
+                      >
+                        <Key className="size-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
                         onClick={() => setDeleteUserId(user.id)}
                         disabled={isDeleting}
                       >
@@ -172,6 +212,50 @@ export default function Users() {
         onSave={handleSave}
         isSaving={isCreating}
       />
+
+      <AlertDialog open={!!resetUserId} onOpenChange={handleResetClose}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset Password</AlertDialogTitle>
+            <AlertDialogDescription>
+              {isResetting ? (
+                <p className="py-4">Resetting password...</p>
+              ) : tempPassword ? (
+                <div className="space-y-3 pt-2">
+                  <p>Temporary password for <span className="font-medium">{userToReset?.name}</span>:</p>
+                  <div className="flex gap-2">
+                    <Input
+                      value={tempPassword}
+                      readOnly
+                      className="font-mono text-lg"
+                    />
+                    <Button variant="outline" onClick={copyPassword}>
+                      Copy
+                    </Button>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    User must change password after logging in.
+                  </p>
+                </div>
+              ) : (
+                <>Reset password for <span className="font-medium">{userToReset?.name}</span>? They will be required to change it after logging in.</>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            {tempPassword ? (
+              <AlertDialogAction onClick={handleResetClose}>Done</AlertDialogAction>
+            ) : (
+              <>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleResetPassword} disabled={isResetting}>
+                  Reset Password
+                </AlertDialogAction>
+              </>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={!!deleteUserId} onOpenChange={() => setDeleteUserId(null)}>
         <AlertDialogContent>
