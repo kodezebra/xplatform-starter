@@ -1,11 +1,8 @@
-import { Menu, Sun, Moon, Monitor } from "lucide-react";
+import { Sun, Moon, Monitor } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useApp } from "@/lib/context/AppContext";
 import { UserMenu } from "./UserMenu";
-
-interface HeaderProps {
-  onMenuClick?: () => void;
-}
 
 const icons = {
   light: Sun,
@@ -13,7 +10,7 @@ const icons = {
   system: Monitor,
 } as const;
 
-export function Header({ onMenuClick }: HeaderProps) {
+export function Header() {
   const { theme, setTheme } = useApp();
   const ThemeIcon = icons[theme];
 
@@ -25,31 +22,20 @@ export function Header({ onMenuClick }: HeaderProps) {
   };
 
   return (
-    <header className="h-14 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-      <div className="flex items-center justify-between h-full px-4">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-            onClick={onMenuClick}
-          >
-            <Menu className="size-5" />
-          </Button>
-        </div>
+    <header className="flex h-14 shrink-0 items-center gap-2 border-b bg-background px-4">
+      <SidebarTrigger className="md:hidden" />
+      <div className="flex-1" />
+      <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={cycleTheme}
+          title={`Theme: ${theme}`}
+        >
+          <ThemeIcon className="size-4" />
+        </Button>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={cycleTheme}
-            title={`Theme: ${theme}`}
-          >
-            <ThemeIcon className="size-4" />
-          </Button>
-
-          <UserMenu />
-        </div>
+        <UserMenu />
       </div>
     </header>
   );
