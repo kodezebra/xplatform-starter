@@ -4,19 +4,23 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { useApp } from "@/lib/context/AppContext";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useRoleGuard } from "@/lib/hooks/useRoleGuard";
+import { useSetupStatus } from "@/lib/hooks/useSetupStatus";
 import Dashboard from "./dashboard";
 import Users from "./users";
 import UserDetail from "./users.$userId";
 import Settings from "./settings";
 import Login from "./login";
 import ChangePassword from "./change-password";
+import SetupWizard from "./setup";
 
 function useDocumentTitle() {
-  const { appName } = useApp();
+  const { appName, isReady } = useApp();
   const location = useLocation();
 
   useEffect(() => {
-    const titles: Record<string, string> = {
+    if (!isReady || !appName) return;
+
+    const pageTitles: Record<string, string> = {
       "/": "Dashboard",
       "/users": "Users",
       "/settings": "Settings",
@@ -24,29 +28,34 @@ function useDocumentTitle() {
       "/change-password": "Change Password",
     };
 
-    let title = appName;
+    let pageTitle = appName;
 
     if (location.pathname === "/") {
-      title = `${appName} - ${titles["/"]}`;
+      pageTitle = `${appName} - ${pageTitles["/"]}`;
     } else if (location.pathname.startsWith("/users/")) {
-      title = `${appName} - User Details`;
-    } else if (titles[location.pathname]) {
-      title = `${appName} - ${titles[location.pathname]}`;
+      pageTitle = `${appName} - User Details`;
+    } else if (pageTitles[location.pathname]) {
+      pageTitle = `${appName} - ${pageTitles[location.pathname]}`;
     }
 
-    document.title = title;
-  }, [location.pathname, appName]);
+    document.title = pageTitle;
+  }, [location.pathname, appName, isReady]);
 }
 
 function ProtectedRoute({ children }: { children?: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
+  const isSetupComplete = useSetupStatus();
 
-  if (isLoading) {
+  if (isLoading || isSetupComplete === null) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-muted-foreground">Loading...</p>
       </div>
     );
+  }
+
+  if (!isSetupComplete) {
+    return <Navigate to="/setup" replace />;
   }
 
   if (!isAuthenticated) {
@@ -76,11 +85,30 @@ function PasswordChangeGuard({ children }: { children?: React.ReactNode }) {
   return children ? <>{children}</> : <Outlet />;
 }
 
+function SetupRoute() {
+  const isSetupComplete = useSetupStatus();
+
+  if (isSetupComplete === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
+
+  if (isSetupComplete) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <SetupWizard />;
+}
+
 function Router() {
   useDocumentTitle();
 
   return (
     <Routes>
+      <Route path="/setup" element={<SetupRoute />} />
       <Route path="/login" element={<Login />} />
       <Route path="/change-password" element={<ChangePassword />} />
       <Route element={<ProtectedRoute />}>

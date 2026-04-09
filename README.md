@@ -23,6 +23,14 @@ cd xplatform-starter
 bun install
 ```
 
+## First Run - Setup Wizard
+
+On first launch, you'll be guided through a quick setup:
+
+1. **School Info**: Enter your school name
+2. **Admin Account**: Create your admin account (name, email, password)
+3. **Done!**: Start using the app
+
 ## Development
 
 ```bash
@@ -59,14 +67,6 @@ sudo dnf install "SMS App-0.1.0-1.x86_64.rpm"
 chmod +x "SMS App_0.1.0_amd64.AppImage"
 ./"SMS App_0.1.0_amd64.AppImage"
 ```
-
-## Default Credentials
-
-On first run, an admin account is auto-created:
-- **Username**: admin
-- **Password**: admin123
-
-Change the password after first login.
 
 ## Project Structure
 

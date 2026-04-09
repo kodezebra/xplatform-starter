@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useSidebar } from "./AppLayout";
 import { useApp } from "@/lib/context/AppContext";
 import { useRoleGuard } from "@/lib/hooks/useRoleGuard";
+import { useVersion } from "@/lib/hooks/useVersion";
 
 const navItems = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -21,6 +22,7 @@ export function Sidebar() {
   const location = useLocation();
   const { isCollapsed, setCollapsed } = useSidebar();
   const { hasAccess: isAdmin } = useRoleGuard("admin");
+  const version = useVersion();
 
   const isActive = (path: string) => {
     if (path === "/") {
@@ -117,9 +119,11 @@ export function Sidebar() {
 
         <div className="p-2 md:p-4 border-t">
           <div className={`px-3 py-2 ${isCollapsed ? "text-center" : ""}`}>
-            <p className="text-xs text-muted-foreground truncate">
-              {isCollapsed ? "v1.0" : "Version 1.0.0"}
-            </p>
+            {version && (
+              <p className="text-xs text-muted-foreground truncate">
+                {isCollapsed ? `v${version}` : `Version ${version}`}
+              </p>
+            )}
           </div>
         </div>
       </aside>

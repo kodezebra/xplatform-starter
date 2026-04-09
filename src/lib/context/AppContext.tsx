@@ -9,6 +9,7 @@ interface AppContextType {
   resolvedTheme: "light" | "dark";
   appName: string;
   setAppName: (name: string) => void;
+  isReady: boolean;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -21,7 +22,8 @@ function getSystemTheme(): "light" | "dark" {
 export function AppProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>("system");
   const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
-  const [appName, setAppName] = useState("SMS App");
+  const [appName, setAppName] = useState("");
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem("theme") as Theme | null;
@@ -63,6 +65,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
       } catch (error) {
         console.error("Failed to load settings:", error);
+      } finally {
+        setIsReady(true);
       }
     }
     loadSettings();
@@ -78,7 +82,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AppContext.Provider value={{ theme, setTheme, resolvedTheme, appName, setAppName: handleSetAppName }}>
+    <AppContext.Provider value={{ theme, setTheme, resolvedTheme, appName, setAppName: handleSetAppName, isReady }}>
       {children}
     </AppContext.Provider>
   );

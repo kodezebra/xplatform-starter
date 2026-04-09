@@ -184,24 +184,6 @@ export const queries = {
         [id, email, success ? 1 : 0, now]
       );
     },
-
-    seedAdmin: async (): Promise<boolean> => {
-      // Check if any users exist
-      const existingUsers = await queries.users.findAll();
-      if (existingUsers.length > 0) return false;
-
-      const { hash, salt } = await hashPassword("admin");
-      const id = generateId();
-      const now = new Date().toISOString();
-
-      const database = await getDb();
-      await database.execute(
-        "INSERT INTO users (id, name, email, role, status, password_hash, salt, first_login, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
-        [id, "Administrator", "admin@local", "admin", "active", hash, salt, 1, now, now]
-      );
-
-      return true;
-    },
   },
 
   users: {

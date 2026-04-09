@@ -5,7 +5,6 @@ import { AppProvider } from "@/lib/context/AppContext";
 import { AuthProvider } from "@/lib/context/AuthContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AppRoutes } from "./routes/__root";
-import { useAdminSeed } from "@/lib/hooks/useAdminSeed";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -16,18 +15,12 @@ const queryClient = new QueryClient({
   },
 });
 
-function AdminSeeder() {
-  useAdminSeed();
-  return null;
-}
-
 function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <AppProvider>
           <AuthProvider>
-            <AdminSeeder />
             <AppRoutes />
             <Toaster position="bottom-right" richColors closeButton />
           </AuthProvider>
