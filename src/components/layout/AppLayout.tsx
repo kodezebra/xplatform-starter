@@ -11,7 +11,7 @@ export function AppLayout() {
     <TooltipProvider>
       <div className="min-h-screen bg-background">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-        <div className="md:ml-64">
+        <div className="md:pl-64">
           <Header onMenuClick={() => setSidebarOpen(true)} />
           <main className="p-4 md:p-6">
             <Outlet />
