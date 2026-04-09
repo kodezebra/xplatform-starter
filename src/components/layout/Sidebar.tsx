@@ -1,17 +1,17 @@
+import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Settings, MessageSquare, X } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { LayoutDashboard, Users, Settings, MessageSquare, X, User, LogOut, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/users/Avatar";
-import { useSidebar } from "./AppLayout";
 import { useApp } from "@/lib/context/AppContext";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useRoleGuard } from "@/lib/hooks/useRoleGuard";
 import { useVersion } from "@/lib/hooks/useVersion";
+
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
 
 const navItems = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -19,13 +19,25 @@ const navItems = [
   { path: "/settings", label: "Settings", icon: Settings },
 ];
 
-export function Sidebar() {
+export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { appName } = useApp();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const location = useLocation();
-  const { isCollapsed, setCollapsed } = useSidebar();
   const { hasAccess: isAdmin } = useRoleGuard("admin");
   const version = useVersion();
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const isActive = (path: string) => {
     if (path === "/") {
@@ -35,47 +47,51 @@ export function Sidebar() {
   };
 
   const handleNavClick = () => {
-    if (window.innerWidth < 768) {
-      setCollapsed(true);
-    }
+    onClose();
+  };
+
+  const handleLogout = async () => {
+    setUserMenuOpen(false);
+    await logout();
   };
 
   return (
     <>
       {/* Mobile overlay */}
-      {!isCollapsed && window.innerWidth < 768 && (
+      {isOpen && (
         <div 
           className="fixed inset-0 bg-black/50 z-40 md:hidden"
-          onClick={() => setCollapsed(true)}
+          onClick={onClose}
         />
       )}
 
       <aside className={`
         fixed left-0 top-0 h-screen bg-sidebar border-r flex flex-col z-50
-        transition-all duration-300 ease-in-out
-        ${isCollapsed ? "w-16 -translate-x-full md:translate-x-0" : "w-64"}
-        max-md:w-64
+        transition-transform duration-300 ease-in-out
+        w-64
+        ${isOpen ? "translate-x-0" : "-translate-x-full"}
+        md:translate-x-0
       `}>
         <div className="p-4 border-b flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-3" onClick={handleNavClick}>
             <div className="size-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
               <MessageSquare className="size-4 text-primary-foreground" />
             </div>
-            <span className={`font-semibold text-lg transition-all duration-300 ${isCollapsed ? "opacity-0 w-0" : "opacity-100"} hidden md:block`}>
+            <span className="font-semibold text-lg">
               {appName}
             </span>
           </Link>
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="md:hidden size-8"
-            onClick={() => setCollapsed(true)}
+            onClick={onClose}
           >
             <X className="size-4" />
           </Button>
         </div>
 
-        <nav className="flex-1 p-2 md:p-4 overflow-y-auto">
+        <nav className="flex-1 p-4 overflow-y-auto">
           <ul className="space-y-1">
             {navItems
               .filter((item) => {
@@ -88,82 +104,86 @@ export function Sidebar() {
 
               return (
                 <li key={item.path}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Link
-                        to={item.path}
-                        onClick={handleNavClick}
-                        className={`
-                          flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
-                          ${active
-                            ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                            : "text-sidebar-foreground hover:bg-sidebar-accent/50"
-                          }
-                          ${isCollapsed ? "justify-center" : ""}
-                        `}
-                      >
-                        <Icon className="size-4 shrink-0" />
-                        <span className={`transition-all duration-300 ${isCollapsed ? "hidden md:hidden" : ""}`}>
-                          {item.label}
-                        </span>
-                      </Link>
-                    </TooltipTrigger>
-                    {isCollapsed && (
-                      <TooltipContent side="right">
-                        {item.label}
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
+                  <Link
+                    to={item.path}
+                    onClick={handleNavClick}
+                    className={`
+                      flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
+                      ${active
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                        : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+                      }
+                    `}
+                  >
+                    <Icon className="size-4 shrink-0" />
+                    <span>{item.label}</span>
+                  </Link>
                 </li>
               );
             })}
           </ul>
-
-          {user && (
-            <div className="mt-4 pt-4 border-t">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Link
-                    to={`/users/${user.id}`}
-                    onClick={handleNavClick}
-                    className={`
-                      flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
-                      ${location.pathname === `/users/${user.id}`
-                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                        : "text-sidebar-foreground hover:bg-sidebar-accent/50"
-                      }
-                      ${isCollapsed ? "justify-center" : ""}
-                    `}
-                  >
-                    <Avatar
-                      userId={user.id}
-                      userName={user.name}
-                      imagePath={user.image_path}
-                      size="sm"
-                    />
-                    <span className={`transition-all duration-300 ${isCollapsed ? "hidden md:hidden" : ""} truncate`}>
-                      {user.name}
-                    </span>
-                  </Link>
-                </TooltipTrigger>
-                {isCollapsed && (
-                  <TooltipContent side="right">
-                    Profile
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            </div>
-          )}
         </nav>
 
-        <div className="p-2 md:p-4 border-t">
-          <div className={`px-3 py-2 ${isCollapsed ? "text-center" : ""}`}>
-            {version && (
-              <p className="text-xs text-muted-foreground truncate">
-                {isCollapsed ? `v${version}` : `Version ${version}`}
-              </p>
-            )}
-          </div>
+        <div className="p-4 border-t">
+          {user && (
+            <div className="relative" ref={userMenuRef}>
+              <button
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-sidebar-accent/50 transition-colors"
+              >
+                <Avatar
+                  userId={user.id}
+                  userName={user.name}
+                  imagePath={user.image_path}
+                  size="sm"
+                />
+                <div className="flex-1 min-w-0 text-left">
+                  <p className="text-sm font-medium truncate">{user.name}</p>
+                  <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
+                </div>
+              </button>
+
+              {userMenuOpen && (
+                <div className="absolute bottom-full left-0 right-0 mb-2 rounded-lg border bg-sidebar shadow-lg overflow-hidden">
+                  <div className="px-3 py-2 border-b">
+                    <p className="text-sm font-medium truncate">{user.name}</p>
+                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                  </div>
+                  <div className="py-1">
+                    <Link
+                      to={`/users/${user.id}`}
+                      onClick={() => { setUserMenuOpen(false); handleNavClick(); }}
+                      className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-sidebar-accent/50"
+                    >
+                      <User className="size-4" />
+                      Profile
+                    </Link>
+                    <Link
+                      to="/settings"
+                      onClick={() => { setUserMenuOpen(false); handleNavClick(); }}
+                      className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-sidebar-accent/50"
+                    >
+                      <Settings2 className="size-4" />
+                      Settings
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-sidebar-accent/50"
+                    >
+                      <LogOut className="size-4" />
+                      Log out
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {version && (
+            <p className="text-xs text-muted-foreground truncate text-center mt-2">
+              v{version}
+            </p>
+          )}
         </div>
       </aside>
     </>
