@@ -42,10 +42,10 @@ Pre-built installers are automatically generated on every push via GitHub Action
 **To download:**
 1. Go to [Actions](https://github.com/kodezebra/xplatform-starter/actions)
 2. Click a completed workflow run
-3. Under "Artifacts", download the bundle for your platform:
-   - **Ubuntu/Linux**: `bundles-ubuntu-22.04` → `.deb`, `.rpm`, `.AppImage`
-   - **Windows**: `bundles-windows-latest` → `.exe` installer
-   - **macOS**: `bundles-macos-latest` → `.dmg`
+3. Under "Artifacts", download only what you need:
+   - **Linux**: `deb`, `rpm`, or `appimage`
+   - **Windows**: `windows`
+   - **macOS**: `macos`
 
 **Linux installation:**
 ```bash
