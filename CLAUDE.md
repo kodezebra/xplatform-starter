@@ -41,11 +41,74 @@ This project builds **only on Git tags**, not on every push.
 
 ## Code Conventions
 
-- Use **Bun** as package manager
+### General Principles
+- **DRY** (Don't Repeat Yourself) - Extract repeated logic into functions/components
+- **KISS** (Keep It Simple, Stupid) - Simple > Clever
+- **YAGNI** (You Aren't Gonna Need It) - Don't build features you might need
+- **Prefer flat over nested** - Early returns over deep nesting
+- **Small functions** - If a function does multiple things, split it up
+- **Meaningful names** - Variables/functions should be self-documenting
+
+### TypeScript/React
+- Use `interface` for object shapes, `type` for unions/primitives
+- Avoid `any` - Use `unknown` and type guard if needed
+- Use `const` by default, `let` only when reassignment is needed
+- Prefer functional components with hooks
+- Co-locate: component + styles + tests in same folder
+- Use early returns to reduce nesting:
+  ```typescript
+  // Bad
+  if (user) {
+    if (user.isActive) {
+      // deep nesting
+    }
+  }
+
+  // Good
+  if (!user || !user.isActive) return;
+  // flat, readable
+  ```
+
+### Rust/Tauri
+- Prefer `?` operator over `match`/`unwrap` for error propagation
+- Use structopt/clap for CLI arguments
+- Keep Rust code minimal - do most logic in TypeScript/React
+- Use `#[derive(Debug, Clone, ...)]` only when needed
+
+### Styling
 - Use **Tailwind CSS v4** (CSS-first config)
-- Use **shadcn/ui** components
-- Use **Tauri v2** for desktop/mobile
-- Follow existing code patterns in the project
+- Use **shadcn/ui** components as base
+- Avoid inline styles unless dynamic
+- Extract repeated class patterns into components
+- Use CSS variables for theme values
+
+### State Management
+- Use React Query for server state
+- Use React Context sparingly (only global truly global state)
+- Prefer local state (`useState`) over lifting state up
+
+### File Organization
+```
+src/
+├── components/       # Reusable UI components
+│   └── ui/           # shadcn/ui base components
+├── features/         # Feature-specific code
+│   ├── users/
+│   └── settings/
+├── hooks/            # Custom React hooks
+├── lib/              # Utilities, API clients
+├── pages/            # Route pages
+└── types/            # Shared TypeScript types
+```
+
+### What to Avoid
+- Premature optimization
+- Over-abstraction (3 usages = maybe, 5+ = yes)
+- Commented-out code (delete it, git has history)
+- TODO comments (create issue instead)
+- Magic numbers (use constants)
+- Unnamed exports (use named exports)
+- barrels (index.ts re-exports) unless 3+ imports
 
 ## Tauri Development
 
