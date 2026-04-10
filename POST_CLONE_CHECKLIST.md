@@ -39,6 +39,15 @@
 - [ ] Update `README.md` with new project info
 - [ ] Update or remove `LICENSE` file
 - [ ] Review `.github/` workflows (update repo names if needed)
+- [ ] Read `RELEASE_GUIDE.md` to understand release process
+
+## First Release
+- [ ] Update version in `src-tauri/tauri.conf.json`
+- [ ] Update version in `src-tauri/Cargo.toml`
+- [ ] Update version in `package.json` (optional)
+- [ ] Create first tag: `git tag v0.1.0`
+- [ ] Push tag: `git push origin v0.1.0`
+- [ ] Download artifacts from GitHub Actions
 
 ## Verification
 - [ ] Run `bun run dev` to verify frontend works
